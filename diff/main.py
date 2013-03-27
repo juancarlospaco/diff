@@ -93,20 +93,31 @@ class Main(plugin.Plugin):
         ' make a diff method '
         dialog = QDialog(self.dock)
 
+        # widgets
+        # ledEncoding.addItems(['UTF-8', 'ISO-8859-1'])
+
+
+
+        # list
         widget_list = (
             QLabel(' <h3> Ninja-IDE Diff and Patch <h3> '),
-            QLabel(''),
+            # QLabel(''),
             QLabel('Original'),
             QLineEdit(''),
             QLabel(''),
             QLabel('Modified'),
             QLineEdit(''),
+            QLineEdit('Output Format'),
+
 
         )
 
+        # pack to gui
         vbox = QVBoxLayout(dialog)
         for each_widget in widget_list:
             vbox.addWidget(each_widget)
+
+        # resize and show
         dialog.resize(self.dock.size().width() / 1.5, dialog.size().height())
         dialog.exec_()
 
