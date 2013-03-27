@@ -72,51 +72,57 @@ class Main(plugin.Plugin):
         self.open = QAction(QIcon.fromTheme("document-open"), 'Open DIFF', self)
         self.diff = QAction(QIcon.fromTheme("document-new"), 'Make DIFF', self)
         QToolBar(self.dock).addActions((self.open, self.diff))
-        #try:
-        self.factory = KPluginLoader("komparepart").factory()
-        self.part = self.factory.create(self)
-        self.dock.setWidget(self.part.widget())
-        self.open.triggered.connect(lambda: self.part.openUrl(KUrl(str(
-            QFileDialog.getOpenFileName(self.dock, ' Open a DIFF file ',
-                                    path.expanduser("~"), ';;(*.diff)')))))
-        self.diff.triggered.connect(self.make_diff)
-        #except:
-            #self.dock.setWidget(QLabel(""" <center>
-            #<h3>ಠ_ಠ<br> ERROR: Please, install Kompare App ! </h3><br>
-            #<br><i> (Sorry, cant embed non-Qt Apps). </i><center>"""))
+        try:
+            self.factory = KPluginLoader("komparepart").factory()
+            self.part = self.factory.create(self)
+            self.dock.setWidget(self.part.widget())
+            self.open.triggered.connect(lambda: self.part.openUrl(KUrl(str(
+                QFileDialog.getOpenFileName(self.dock, ' Open a DIFF file ',
+                                        path.expanduser("~"), ';;(*.diff)')))))
+            self.diff.triggered.connect(self.make_diff)
+        except:
+            self.dock.setWidget(QLabel(""" <center>
+            <h3>ಠ_ಠ<br> ERROR: Please, install Kompare App ! </h3><br>
+            <br><i> (Sorry, cant embed non-Qt Apps). </i><center>"""))
 
         self.misc = self.locator.get_service('misc')
         self.misc.add_widget(self.dock,
                                 QIcon.fromTheme("edit-select-all"), __doc__)
 
     def make_diff(self):
-        ' make a diff method '
+        ' make a diff method with GUI '
         dialog = QDialog(self.dock)
-
         # widgets
-        # ledEncoding.addItems(['UTF-8', 'ISO-8859-1'])
-
-
+        frmt = QComboBox()
+        frmt.addItems(['Unified', 'Normal', 'Context'])
+        bcknd = QComboBox()
+        bcknd.addItems(['diff', 'diff.py'])
+        bcknd.setDisabled(True)  #TODO this feature needs work
 
         # list
         widget_list = (
             QLabel(' <h3> Ninja-IDE Diff and Patch <h3> '),
-            # QLabel(''),
             QLabel('Original'),
-            QLineEdit(''),
+            QLineEdit(),
             QLabel(''),
             QLabel('Modified'),
-            QLineEdit(''),
-            QLineEdit('Output Format'),
+            QLineEdit(),
+            QLabel(''),
+            QLabel('Output Format'),
+            frmt,
+            QLabel(''),
+            QLabel('Diff Backend (EXPERIMENTAL)'),
+            bcknd,
+            QLabel(''),
+            QLineEdit('a'),
 
 
+            QLabel(''),
         )
-
         # pack to gui
         vbox = QVBoxLayout(dialog)
         for each_widget in widget_list:
             vbox.addWidget(each_widget)
-
         # resize and show
         dialog.resize(self.dock.size().width() / 1.5, dialog.size().height())
         dialog.exec_()
