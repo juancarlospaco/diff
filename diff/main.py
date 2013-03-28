@@ -98,6 +98,18 @@ class Main(plugin.Plugin):
         bcknd = QComboBox()
         bcknd.addItems(['diff', 'diff.py'])
         bcknd.setDisabled(True)  #TODO this feature needs work
+        wdth = QComboBox()
+        wdth.addItems(['80', '90', '100', '120', '130', '250', '500', '999'])
+        tbs = QComboBox()
+        tbs.addItems(['4', '6', '8', '10', '2', 'NO replace Tabs with Spaces'])
+        ignr = QComboBox()
+        ignr.addItems(['NO ignore all spaces, tabs, and blanks changes',
+                       'Ignore case differences in file contents only',
+                       'Ignore case differences, and spaces at line end',
+                       'Ignore case, spaces at end, and amount of spaces',
+                       'Ignore all spaces, tabs, and blanks changes'
+        ])
+
 
         # list
         widget_list = (
@@ -114,7 +126,15 @@ class Main(plugin.Plugin):
             QLabel('Diff Backend (EXPERIMENTAL)'),
             bcknd,
             QLabel(''),
-            QLineEdit('a'),
+            QLabel('Diff Maximum Total Width'),
+            wdth,
+            QLabel(''),
+            QLabel('Diff Tabs-to-Spaces Size'),
+            tbs,
+            QLabel(''),
+            QLabel('Diff Ignore Tabs, Spaces and Blanks'),
+            ignr,
+
 
 
             QLabel(''),
@@ -124,7 +144,7 @@ class Main(plugin.Plugin):
         for each_widget in widget_list:
             vbox.addWidget(each_widget)
         # resize and show
-        dialog.resize(self.dock.size().width() / 1.5, dialog.size().height())
+        # dialog.resize(self.dock.size().width() / 2, dialog.size().height())
         dialog.exec_()
 
 
