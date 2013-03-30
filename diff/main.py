@@ -32,6 +32,8 @@ __full_licence__ = ''
 
 # imports
 from os import path
+from os import linesep
+from subprocess import check_output as getoutput  # lint:ok
 
 from PyQt4.QtGui import QIcon
 from PyQt4.QtGui import QLabel
@@ -40,13 +42,19 @@ from PyQt4.QtGui import QToolBar
 from PyQt4.QtGui import QAction
 from PyQt4.QtGui import QFileDialog
 from PyQt4.QtGui import QWidget
-from PyQt4.QtGui import QScrollArea
 from PyQt4.QtGui import QVBoxLayout
+from PyQt4.QtGui import QHBoxLayout
 from PyQt4.QtGui import QComboBox
 from PyQt4.QtGui import QCursor
 from PyQt4.QtGui import QLineEdit
 from PyQt4.QtGui import QCheckBox
 from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QPushButton
+from PyQt4.QtGui import QGroupBox
+from PyQt4.QtGui import QDialogButtonBox
+from PyQt4.QtGui import QMessageBox
+
+from PyQt4.QtCore import Qt
 
 try:
     from PyKDE4.kdecore import *
@@ -89,67 +97,111 @@ class Main(plugin.Plugin):
         self.misc.add_widget(self.dock,
                                 QIcon.fromTheme("edit-select-all"), __doc__)
 
+###############################################################################
+
     def make_diff(self):
         ' make a diff method with GUI '
         dialog = QDialog(self.dock)
-        # widgets
-        frmt = QComboBox()
+
+        group1 = QGroupBox()
+        group1.setTitle('Diff')
+        frmt = QComboBox(group1)
         frmt.addItems(['Unified', 'Normal', 'Context'])
-        bcknd = QComboBox()
+        bcknd = QComboBox(group1)
         bcknd.addItems(['diff', 'diff.py'])
         bcknd.setDisabled(True)  #TODO this feature needs work
-        wdth = QComboBox()
+        wdth = QComboBox(group1)
         wdth.addItems(['80', '90', '100', '120', '130', '250', '500', '999'])
-        tbs = QComboBox()
-        tbs.addItems(['4', '6', '8', '10', '2', 'NO replace Tabs with Spaces'])
-        ignr = QComboBox()
-        ignr.addItems(['NO ignore all spaces, tabs, and blanks changes',
-                       'Ignore case differences in file contents only',
-                       'Ignore case differences, and spaces at line end',
-                       'Ignore case, spaces at end, and amount of spaces',
-                       'Ignore all spaces, tabs, and blanks changes'
-        ])
+        tbs = QComboBox(group1)
+        tbs.addItems(['4', '6', '8', '10', '2'])
+        nice = QComboBox(group1)
+        nice.addItems(['20', '15', '10', '5', '0'])
+        file1 = QLineEdit()
+        file1.setPlaceholderText('/full/path/to/one_file.py')
+        file2 = QLineEdit()
+        file2.setPlaceholderText('/full/path/to/another_file.py')
+        regex = QLineEdit()
+        regex.setPlaceholderText('Do NOT use unless you know what are doing')
+        borig = QPushButton(QIcon.fromTheme("folder-open"), 'Open')
+        bmodi = QPushButton(QIcon.fromTheme("folder-open"), 'Open')
+        vboxg1 = QVBoxLayout(group1)
+        for each_widget in (QLabel('Original'), file1, borig,
+                            QLabel('Modified'), file2, bmodi,
+                            QLabel('Diff Output Format'), frmt,
+                            QLabel('Diff Backend (EXPERIMENTAL)'), bcknd,
+                            QLabel('Diff Maximum Total Width'), wdth,
+                            QLabel('Diff Tabs-to-Spaces Size'), tbs,
+                            QLabel('Diff Backend CPU Priority'), nice,
+                            QLabel('Diff REGEX to Ignore (ADVANCED)'), regex):
+            vboxg1.addWidget(each_widget)
+            each_widget.resize(each_widget.size().width() * 2,
+                               each_widget.size().height())
 
+        group2 = QGroupBox()
+        group2.setTitle('Options')
+        nwfl = QCheckBox('Treat new files as Empty', group2)
+        smll = QCheckBox('Look for smaller changes', group2)
+        lrgf = QCheckBox('Optimize for large files', group2)
+        case = QCheckBox('Ignore case changes on content', group2)
+        cnvt = QCheckBox('Convert Tabs to Spaces', group2)
+        blnk = QCheckBox('Ignore added or removed Blank lines', group2)
+        spac = QCheckBox('Ignore changes in amount of Spaces', group2)
+        whit = QCheckBox('Ignore ALL white Spaces', group2)
+        tabz = QCheckBox('Ignore changes by Tab expansions', group2)
+        lolz = QCheckBox('Output DIFF in two equal columns', group2)
+        sprs = QCheckBox('Remove Space or Tab before empty lines', group2)
+        pret = QCheckBox('Align all Tabs by prepending a Tab', group2)
+        filn = QCheckBox('Ignore case when comparing file names', group2)
+        plai = QCheckBox('Force treat all files as plain text', group2)
+        nocr = QCheckBox('Force strip trailing carriage return', group2)
+        ridt = QCheckBox('Report when two files are identical', group2)
+        nocm = QCheckBox('Do not output common lines', group2)
+        rdif = QCheckBox('Report only when files differ', group2)
+        clip = QCheckBox('Copy Diff to Clipboard when done', group2)
+        noti = QCheckBox('Use system Notification when done', group2)
+        for widget_should_be_checked in (nwfl, smll, lrgf, cnvt, plai, noti):
+            widget_should_be_checked.setChecked(True)
+        vboxg2 = QVBoxLayout(group2)
+        for each_widget in (nwfl, smll, lrgf, case, cnvt, blnk, spac, whit,
+                            tabz, lolz, sprs, pret, filn, plai, nocr, ridt,
+                            nocm, rdif, clip, noti):
+            vboxg2.addWidget(each_widget)
+            each_widget.setToolTip(each_widget.text())
+            each_widget.setCursor(QCursor(Qt.PointingHandCursor))
 
-        # list
-        widget_list = (
-            QLabel(' <h3> Ninja-IDE Diff and Patch <h3> '),
-            QLabel('Original'),
-            QLineEdit(),
-            QLabel(''),
-            QLabel('Modified'),
-            QLineEdit(),
-            QLabel(''),
-            QLabel('Output Format'),
-            frmt,
-            QLabel(''),
-            QLabel('Diff Backend (EXPERIMENTAL)'),
-            bcknd,
-            QLabel(''),
-            QLabel('Diff Maximum Total Width'),
-            wdth,
-            QLabel(''),
-            QLabel('Diff Tabs-to-Spaces Size'),
-            tbs,
-            QLabel(''),
-            QLabel('Diff Ignore Tabs, Spaces and Blanks'),
-            ignr,
+        container = QWidget()
+        hbox = QHBoxLayout(container)
+        for each_widget in (group1, group2):
+            hbox.addWidget(each_widget)
 
+        buttons = QDialogButtonBox()
+        buttons.resize(dialog.size().width(), buttons.size().height() * 2)
+        buttons.setOrientation(Qt.Horizontal)
+        buttons.setStandardButtons(
+            QDialogButtonBox.Ok |
+            QDialogButtonBox.Cancel |
+            QDialogButtonBox.Close |
+            QDialogButtonBox.Help)
+        buttons.setCenterButtons(False)
+        buttons.helpRequested.connect(lambda: QMessageBox.about(dialog, __doc__,
+            ''.join((__doc__, ' GUI and Visualizer Plugin,', linesep,
+            'version ', __version__, ', (', __license__, '), by ', linesep,
+            __author__, ', ( ', __email__, ' ).', linesep))))
+        buttons.rejected.connect(dialog.close)
+        # buttons.accepted.connect()
 
+        info = QLabel(''.join(('<b> Current Backend Diff Engine: </b>',
+                      getoutput('diff --version', shell=True).split(linesep)[0]
+        )))
 
-            QLabel(''),
-        )
-        # pack to gui
         vbox = QVBoxLayout(dialog)
-        for each_widget in widget_list:
+        for each_widget in (
+                QLabel('<center><h2> Ninja IDE Diff and Patch </h2></center>'),
+                container, info, buttons):
             vbox.addWidget(each_widget)
-        # resize and show
-        # dialog.resize(self.dock.size().width() / 2, dialog.size().height())
+
+        dialog.resize(self.dock.size().width() / 2, dialog.size().height())
         dialog.exec_()
-
-
-
-
 
 
 ###############################################################################
