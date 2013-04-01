@@ -39,14 +39,9 @@ from PyQt4.QtGui import QDockWidget
 from PyQt4.QtGui import QToolBar
 from PyQt4.QtGui import QAction
 from PyQt4.QtGui import QFileDialog
-from PyQt4.QtGui import QWidget
-from PyQt4.QtGui import QScrollArea
-from PyQt4.QtGui import QVBoxLayout
-from PyQt4.QtGui import QComboBox
-from PyQt4.QtGui import QCursor
-from PyQt4.QtGui import QLineEdit
-from PyQt4.QtGui import QCheckBox
-from PyQt4.QtGui import QDialog
+from PyQt4.QtGui import QMessageBox
+
+from PyQt4.QtCore import QUrl
 
 try:
     from PyKDE4.kdecore import *
@@ -55,6 +50,8 @@ except ImportError:
     pass
 
 from ninja_ide.core import plugin
+
+from .diffgui import DiffGUI as Diff_GUI
 
 
 ###############################################################################
@@ -71,48 +68,46 @@ class Main(plugin.Plugin):
         self.dock.setStyleSheet('QDockWidget::title{text-align: center;}')
         self.open = QAction(QIcon.fromTheme("document-open"), 'Open DIFF', self)
         self.diff = QAction(QIcon.fromTheme("document-new"), 'Make DIFF', self)
-        QToolBar(self.dock).addActions((self.open, self.diff))
-        #try:
-        self.factory = KPluginLoader("komparepart").factory()
-        self.part = self.factory.create(self)
-        self.dock.setWidget(self.part.widget())
-        self.open.triggered.connect(lambda: self.part.openUrl(KUrl(str(
-            QFileDialog.getOpenFileName(self.dock, ' Open a DIFF file ',
-                                    path.expanduser("~"), ';;(*.diff)')))))
-        self.diff.triggered.connect(self.make_diff)
-        #except:
-            #self.dock.setWidget(QLabel(""" <center>
-            #<h3>ಠ_ಠ<br> ERROR: Please, install Kompare App ! </h3><br>
-            #<br><i> (Sorry, cant embed non-Qt Apps). </i><center>"""))
+        self.diff.triggered.connect(self.run_gui_and_get_results)
+        self.save = QAction(QIcon.fromTheme("document-save"), 'Save DIFF', self)
+        self.save.triggered.connect(self.save_a_diff)
+        self.patc = QAction(QIcon.fromTheme("document-edit"), 'PATCH it!', self)
+        self.patc.triggered.connect(lambda: QMessageBox.information(self.dock,
+            __doc__, ' Sorry. This Feature is not ready yet !, thank you... '))
+        QToolBar(self.dock).addActions((self.open, self.diff,
+                                        self.save, self.patc))
+        try:
+            self.factory = KPluginLoader("komparepart").factory()
+            self.part = self.factory.create(self)
+            self.dock.setWidget(self.part.widget())
+            self.open.triggered.connect(lambda: self.part.openUrl(KUrl(str(
+                QFileDialog.getOpenFileName(self.dock, ' Open a DIFF file ',
+                                        path.expanduser("~"), ';;(*.diff)')))))
+        except:
+            self.dock.setWidget(QLabel(""" <center>
+            <h3>ಠ_ಠ<br> ERROR: Please, install Kompare App ! </h3><br>
+            <br><i> (Sorry, cant embed non-Qt Apps). </i><center>"""))
 
         self.misc = self.locator.get_service('misc')
         self.misc.add_widget(self.dock,
                                 QIcon.fromTheme("edit-select-all"), __doc__)
 
-    def make_diff(self):
-        ' make a diff method '
-        dialog = QDialog(self.dock)
+    def run_gui_and_get_results(self):
+        ' run_gui_and_get_results '
+        gui = Diff_GUI()
+        if gui.diff_path is not None and path.isfile(gui.diff_path) is True:
+            self.part.openUrl(KUrl(str(gui.diff_path)))
+        return gui.diff_path
 
-        widget_list = (
-            QLabel(' <h3> Ninja-IDE Diff and Patch <h3> '),
-            QLabel(''),
-            QLabel('Original'),
-            QLineEdit(''),
-            QLabel(''),
-            QLabel('Modified'),
-            QLineEdit(''),
-
-        )
-
-        vbox = QVBoxLayout(dialog)
-        for each_widget in widget_list:
-            vbox.addWidget(each_widget)
-        dialog.resize(self.dock.size().width() / 1.5, dialog.size().height())
-        dialog.exec_()
-
-
-
-
+    def save_a_diff(self):
+        ' save a diff '
+        out_file = path.abspath(str(QFileDialog.getSaveFileName(self.dock,
+                   'Save a Diff file', path.expanduser("~"), ';;(*.diff)')))
+        inp_file = file(str(QUrl(
+               self.part.url()).toString()).replace('file://', ''), 'r').read()
+        end_file = file(out_file, 'w')
+        end_file.write(inp_file)
+        end_file.close()
 
 
 ###############################################################################
