@@ -18,12 +18,12 @@
 
 # metadata
 " NINJA-IDE Diff and Patch "
-__version__ = ' 0.1 '
+__version__ = ' 0.2 '
 __license__ = ' GPL '
 __author__ = ' juancarlospaco '
 __email__ = ' juancarlospaco@ubuntu.com '
 __url__ = ''
-__date__ = ' 25/04/2013 '
+__date__ = ' 25/05/2013 '
 __prj__ = ' diff '
 __docformat__ = 'html'
 __source__ = ''
@@ -31,34 +31,24 @@ __full_licence__ = ''
 
 
 # imports
-from os import path
-from os import linesep
+from os import path, linesep
 from tempfile import gettempdir
 from datetime import datetime
 from commands import getoutput
 from subprocess import call
+from sip import setapi
 
-from PyQt4.QtGui import QIcon
-from PyQt4.QtGui import QLabel
-from PyQt4.QtGui import QFileDialog
-from PyQt4.QtGui import QWidget
-from PyQt4.QtGui import QVBoxLayout
-from PyQt4.QtGui import QHBoxLayout
-from PyQt4.QtGui import QComboBox
-from PyQt4.QtGui import QCursor
-from PyQt4.QtGui import QLineEdit
-from PyQt4.QtGui import QCheckBox
-from PyQt4.QtGui import QDialog
-from PyQt4.QtGui import QPushButton
-from PyQt4.QtGui import QGroupBox
-from PyQt4.QtGui import QDialogButtonBox
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtGui import QApplication
-from PyQt4.QtGui import QCompleter
-from PyQt4.QtGui import QDirModel
+from PyQt4.QtGui import (QIcon, QLabel, QFileDialog, QWidget, QVBoxLayout,
+    QHBoxLayout, QComboBox, QCursor, QLineEdit, QCheckBox, QDialog, QPushButton,
+    QGroupBox, QDialogButtonBox, QMessageBox, QApplication, QCompleter,
+    QDirModel)
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtCore import QDir
+from PyQt4.QtCore import Qt, QDir
+
+
+# API 2
+(setapi(a, 2) for a in ("QDate", "QDateTime", "QString", "QTime", "QUrl",
+                        "QTextStream", "QVariant"))
 
 
 ###############################################################################
@@ -78,7 +68,6 @@ class DiffGUI(object):
         self.completer.setModel(self.dirs)
         self.completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.completer.setCompletionMode(QCompleter.PopupCompletion)
-        #self.completer.setCompletionMode(QCompleter.InlineCompletion)
 
         self.group1 = QGroupBox()
         self.group1.setTitle('Diff')
@@ -167,10 +156,10 @@ class DiffGUI(object):
         self.odif = QCheckBox('Open Diff with Ninja-IDE when done')
         self.plac = QCheckBox('Make an Awesome Diff view when done')
         self.wdth = QComboBox(group3)
-        self.wdth.addItems(['80', '100', '120', '130', '250', '500', '999999'])
+        self.wdth.addItems(['80', '100', '120', '130', '250', '500', '9999999'])
         self.bcknd = QComboBox(group3)
         self.bcknd.addItems(['diff', 'diff.py'])
-        self.bcknd.setDisabled(True)  #TODO this feature needs work
+        self.bcknd.setDisabled(True)  # TODO this feature needs work
         vboxg3 = QVBoxLayout(group3)
         for each_widget in (self.plai, self.nocr, self.ridt, self.nocm,
                             self.rdif, self.pret, self.clip, self.noti,
