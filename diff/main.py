@@ -18,12 +18,12 @@
 
 # metadata
 " NINJA-IDE Diff and Patch "
-__version__ = ' 0.1 '
+__version__ = ' 0.2 '
 __license__ = ' GPL '
 __author__ = ' juancarlospaco '
 __email__ = ' juancarlospaco@ubuntu.com '
 __url__ = ''
-__date__ = ' 25/04/2013 '
+__date__ = ' 25/05/2013 '
 __prj__ = ' diff '
 __docformat__ = 'html'
 __source__ = ''
@@ -32,19 +32,15 @@ __full_licence__ = ''
 
 # imports
 from os import path
+from sip import setapi
 
-from PyQt4.QtGui import QIcon
-from PyQt4.QtGui import QLabel
-from PyQt4.QtGui import QDockWidget
-from PyQt4.QtGui import QToolBar
-from PyQt4.QtGui import QAction
-from PyQt4.QtGui import QFileDialog
-from PyQt4.QtGui import QMessageBox
+from PyQt4.QtGui import (QIcon, QLabel, QDockWidget, QToolBar, QAction,
+                         QFileDialog, QMessageBox)
 
 from PyQt4.QtCore import QUrl
 
 try:
-    from PyKDE4.kdecore import *
+    from PyKDE4.kdecore import KPluginLoader, KUrl
     from PyKDE4.kparts import *
 except ImportError:
     pass
@@ -52,6 +48,11 @@ except ImportError:
 from ninja_ide.core import plugin
 
 from .diffgui import DiffGUI as Diff_GUI
+
+
+# API 2
+(setapi(a, 2) for a in ("QDate", "QDateTime", "QString", "QTime", "QUrl",
+                        "QTextStream", "QVariant"))
 
 
 ###############################################################################
@@ -63,7 +64,7 @@ class Main(plugin.Plugin):
         " Init Class dock "
         self.dock = QDockWidget()
         self.dock.setFeatures(QDockWidget.DockWidgetFloatable |
-                                           QDockWidget.DockWidgetMovable)
+                              QDockWidget.DockWidgetMovable)
         self.dock.setWindowTitle(__doc__)
         self.dock.setStyleSheet('QDockWidget::title{text-align: center;}')
         self.open = QAction(QIcon.fromTheme("document-open"), 'Open DIFF', self)
@@ -84,8 +85,8 @@ class Main(plugin.Plugin):
                 QFileDialog.getOpenFileName(self.dock, ' Open a DIFF file ',
                                         path.expanduser("~"), ';;(*.diff)')))))
         except:
-            self.dock.setWidget(QLabel(""" <center>
-            <h3>ಠ_ಠ<br> ERROR: Please, install Kompare App ! </h3><br>
+            self.dock.setWidget(QLabel(""" <center> <h3>ಠ_ಠ<br>
+            ERROR: Please, install Kompare and PyKDE ! </h3><br>
             <br><i> (Sorry, cant embed non-Qt Apps). </i><center>"""))
 
         self.misc = self.locator.get_service('misc')
